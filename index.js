@@ -1,5 +1,5 @@
 import React from 'react';
-import { WebView } from 'react-native';
+import MessageWebView from './MessageWebView';
 import PropTypes from 'prop-types';
 
 const getWebViewContent = (siteKey, action, onReady, onExecute) => {
@@ -8,9 +8,10 @@ const getWebViewContent = (siteKey, action, onReady, onExecute) => {
     '<script src="https://www.google.com/recaptcha/api.js?render=' + siteKey + '"></script> ' +
     '<script type="text/javascript"> ' +
     'grecaptcha.ready(function() { ' +
-        onReady + ' ' +
-        'onReady(); ' +
-        'grecaptcha.execute(\'' + siteKey + '\', {action: \'' + action + '\'}).then('+ onExecute +'); ' +
+        `(${String(onReady)})(); ` +
+        'grecaptcha.execute(\'' + siteKey + '\', {action: \'' + action + '\'}).then( '+ 
+            'function (responseToken) { window.postMessage(responseToken);  } ' +
+        ' ); ' +
     '}); ' +
     '</script>' +
     '</head></html>';
@@ -26,12 +27,11 @@ const ReCaptcha = ({
     onExecute
 }) => {
 return (
-  <WebView
+  <MessageWebView
     ref={(ref) => { this.webview = ref ;}}
     mixedContentMode={'always'}
-    javaScriptEnabled
-    automaticallyAdjustContentInsets
     style={[{ backgroundColor: 'transparent', height: 500 }]}
+    onMessage={(message) => onExecute(message)}
     source={{
         html: getWebViewContent(siteKey, action, onReady, onExecute),
         baseUrl: url
@@ -51,7 +51,7 @@ ReCaptcha.propTypes = {
 
 ReCaptcha.defaultProps = {
     url: '',
-    onRead: () => {},
+    onReady: () => {},
     onExecute: () => {},
     action: ''
 };
