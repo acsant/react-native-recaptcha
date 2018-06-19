@@ -7,8 +7,9 @@ const getWebViewContent = (siteKey, action, onReady, onExecute) => {
     '<style>  .text-xs-center { text-align: center; } .g-recaptcha { display: inline-block; } </style> ' +
     '<script src="https://www.google.com/recaptcha/api.js?render=' + siteKey + '"></script> ' +
     '<script type="text/javascript"> ' +
-    'grecaptcha.ready(function() {' +
-        onReady
+    'grecaptcha.ready(function() { ' +
+        onReady + ' ' +
+        'onReady(); ' +
         'grecaptcha.execute(\'' + siteKey + '\', {action: \'' + action + '\'}).then('+ onExecute +'); ' +
     '}); ' +
     '</script>' +
@@ -20,6 +21,7 @@ const ReCaptcha = ({
     onMessage,
     siteKey,
     url,
+    action,
     onReady,
     onExecute
 }) => {
@@ -31,7 +33,7 @@ return (
     automaticallyAdjustContentInsets
     style={[{ backgroundColor: 'transparent', height: 500 }]}
     source={{
-        html: getWebViewContent(siteKey, onReady, onExecute),
+        html: getWebViewContent(siteKey, action, onReady, onExecute),
         baseUrl: url
     }}
     />  
@@ -42,6 +44,7 @@ ReCaptcha.propTypes = {
     onMessage: PropTypes.func,
     siteKey: PropTypes.string.isRequired,
     url: PropTypes.string,
+    action: PropTypes.string,
     onReady: PropTypes.func,
     onExecute: PropTypes.func
 };
@@ -49,7 +52,8 @@ ReCaptcha.propTypes = {
 ReCaptcha.defaultProps = {
     url: '',
     onRead: () => {},
-    onExecute: () => {}
+    onExecute: () => {},
+    action: ''
 };
 
 export default ReCaptcha;
