@@ -1,0 +1,27 @@
+{
+  "name": "react-native-recaptcha",
+  "version": "0.0.1",
+  "description": "A react native wrapper for Google ReCaptcha V3",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "react",
+    "react-native",
+    "native",
+    "wrapper",
+    "google",
+    "recaptcha",
+    "v3",
+    "security"
+  ],
+  "author": "Akash Sant",
+  "license": "ISC",
+  "dependencies": {
+    "prop-types": "^15.6.1"
+  },
+  "devDependencies": {
+    "react-native": ">=0.24.0"
+  }
+}
