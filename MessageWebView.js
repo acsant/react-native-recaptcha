@@ -23,6 +23,7 @@ export default class MessageWebView extends React.Component {
     }
     render() {
         const { html, source, url, onMessage, ...props } = this.props
+    
         return (
             <WebView
                 {...props}
