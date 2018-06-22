@@ -1,7 +1,7 @@
-import React from 'react';
+import React, {Component} from 'react';
 import MessageWebView from './MessageWebView';
 import PropTypes from 'prop-types';
-import {Linking} from 'react-native';
+import {Platform, Linking} from 'react-native';
 
 const RECAPTCHA_SUB_STR="https://www.google.com/recaptcha/api2/anchor?";
 
@@ -21,17 +21,41 @@ const getWebViewContent = (siteKey, action, onReady) => {
     return webForm;
 }
 
-const ReCaptcha = ({
-    containerStyle,
-    onMessage,
-    siteKey,
-    url,
-    action,
-    onReady,
-    onExecute
-}) => {
-    
-    const onShouldStartLoadWithRequest = (event) => {
+export default class ReCaptcha extends Component {
+
+    static propTypes = {
+        onMessage: PropTypes.func,
+        containerStyle: PropTypes.any,
+        siteKey: PropTypes.string.isRequired,
+        url: PropTypes.string,
+        action: PropTypes.string,
+        onReady: PropTypes.func,
+        onExecute: PropTypes.func,
+    };
+
+    static defaultProps = {
+        onReady: () => {},
+        onExecute: () => {},
+        action: '',
+        url: '',
+        containerStyle: {
+            width: '100%',
+            height: '100%',
+            zIndex: 20,
+            position: 'relative',
+            marginBottom: 50
+        }
+    };
+
+    constructor(props) {
+        super();
+        this.state = {
+            loading: false // Loading the web view
+        };
+    }
+
+    onShouldStartLoadWithRequest = (event) => {
+        const {url} = this.props;
         if (event.url === url || event.url.indexOf(RECAPTCHA_SUB_STR) !== -1) {
             return true;
         }
@@ -39,43 +63,40 @@ const ReCaptcha = ({
         return false;
     }
 
-    return (
-    <MessageWebView
-        ref={(ref) => { this.webview = ref ;}}
-        mixedContentMode={'always'}
-        style={containerStyle}
-        onMessage={(message) => onExecute(message)}
-        source={{
-            html: getWebViewContent(siteKey, action, onReady, onExecute),
-            baseUrl: url
-        }}
-        onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-        />  
-    );
-}
+    onNavigationStateChange = (event) => {
+        if (Platform.OS === 'android') {
+            const {url} = this.props;
+            if (url !== event.url && event.url.indexOf(RECAPTCHA_SUB_STR) === -1 && !!event.canGoBack && !event.loading) {
+                Linking.openURL(event.url);
+                this.webview.getWebViewHandle().goBack();
+            }
+        }
 
-ReCaptcha.propTypes = {
-    onMessage: PropTypes.func,
-    containerStyle: PropTypes.any,
-    siteKey: PropTypes.string.isRequired,
-    url: PropTypes.string,
-    action: PropTypes.string,
-    onReady: PropTypes.func,
-    onExecute: PropTypes.func
-};
-
-ReCaptcha.defaultProps = {
-    url: '',
-    onReady: () => {},
-    onExecute: () => {},
-    action: '',
-    containerStyle: {
-        width: '100%',
-        height: '100%',
-        zIndex: 20,
-        position: 'relative',
-        marginBottom: 50
     }
-};
 
-export default ReCaptcha;
+    render() {
+        const {
+            url,
+            containerStyle,
+            siteKey,
+            action,
+            onReady,
+            onExecute
+        } = this.props;
+        
+        return (
+            <MessageWebView
+                ref={(ref) => { this.webview = ref ;}}
+                mixedContentMode={'always'}
+                style={containerStyle}
+                onMessage={(message) => onExecute(message)}
+                source={{
+                    html: getWebViewContent(siteKey, action, onReady),
+                    baseUrl: url
+                }}
+                onShouldStartLoadWithRequest={this.onShouldStartLoadWithRequest}
+                onNavigationStateChange = {this.onNavigationStateChange}
+                />  
+        );
+    }
+}

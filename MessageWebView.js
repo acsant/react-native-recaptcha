@@ -21,9 +21,14 @@ export default class MessageWebView extends React.Component {
     postMessage(action) {
         this.WebView.postMessage(JSON.stringify(action))
     }
+
+    getWebViewHandle = () => {
+        return this.webview;
+    }
+    
     render() {
         const { html, source, url, onMessage, ...props } = this.props
-    
+
         return (
             <WebView
                 {...props}
@@ -31,7 +36,7 @@ export default class MessageWebView extends React.Component {
                 automaticallyAdjustContentInsets
                 injectedJavaScript={patchPostMessageJsCode}
                 source={source ? source : html ? { html } : url}
-                ref={x => {this.WebView = x}}
+                ref={x => {this.webview = x}}
                 onMessage={e => onMessage(e.nativeEvent.data)}
             />
         )
