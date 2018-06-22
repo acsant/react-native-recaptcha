@@ -47,13 +47,6 @@ export default class ReCaptcha extends Component {
         }
     };
 
-    constructor(props) {
-        super();
-        this.state = {
-            loading: false // Loading the web view
-        };
-    }
-
     onShouldStartLoadWithRequest = (event) => {
         const {url} = this.props;
         if (event.url === url || event.url.indexOf(RECAPTCHA_SUB_STR) !== -1) {
