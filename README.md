@@ -2,7 +2,7 @@
 A react native wrapper for google recaptcha v3
 
 ## Installation
-````
+```
 npm install --save react-native-recaptcha-v3
 ```
 
