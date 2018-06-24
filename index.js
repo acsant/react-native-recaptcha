@@ -61,6 +61,9 @@ export default class ReCaptcha extends Component {
             const {url} = this.props;
             if (url !== event.url && event.url.indexOf(RECAPTCHA_SUB_STR) === -1 && !!event.canGoBack && !event.loading) {
                 Linking.openURL(event.url);
+            }
+
+            if (!!event.canGoBack) {
                 this.webview.getWebViewHandle().goBack();
             }
         }
