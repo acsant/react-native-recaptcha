@@ -4,8 +4,11 @@ import PropTypes from 'prop-types';
 import {Platform, Linking} from 'react-native';
 
 const RECAPTCHA_SUB_STR="https://www.google.com/recaptcha/api2/anchor?";
+const RECAPTCHA_SUB_STR_FRAME="https://www.google.com/recaptcha/api2/bframe";
 
-const getWebViewContent = (siteKey, action, onReady) => {
+export const type = Object.freeze({"google": 1, "firebase": 2});
+
+const getGoogleWebViewContent = (siteKey, action, onReady) => {
     const webForm = '<!DOCTYPE html><html><head> ' +
     '<style>  .text-xs-center { text-align: center; } .g-recaptcha { display: inline-block; } </style> ' +
     '<script src="https://www.google.com/recaptcha/api.js?render=' + siteKey + '"></script> ' +
@@ -21,6 +24,28 @@ const getWebViewContent = (siteKey, action, onReady) => {
     return webForm;
 }
 
+const getFirebaseWebViewContent = (config, onReady) => {
+    const webForm = '<!DOCTYPE html><html><head> '+
+    '<style>  .text-xs-center { text-align: center; } .g-recaptcha { display: inline-block; float: right; margin-top: 40%; margin-right: 40px;} </style> '+
+    '<script src="https://www.gstatic.com/firebasejs/5.1.0/firebase-app.js"></script> '+
+    '<script src="https://www.gstatic.com/firebasejs/5.1.0/firebase-auth.js"></script> '+
+    '<script type="text/javascript"> firebase.initializeApp(' + JSON.stringify(config) + '); '+
+    '</script><script src="https://www.google.com/recaptcha/api.js"></script> '+
+    '</head> '+
+    '<body><div id="recaptcha-cont" class="g-recaptcha"></div>'+
+    '<script> '+
+    'function onloadCallback() { '+
+        'window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier("recaptcha-cont", '+ 
+            '{size: "normal", callback: function(response) { alert(response); }}); '+
+        'window.recaptchaVerifier.render(); '+
+        '} '+
+    '</script>'+
+    '<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback"></script>'+
+    '</body> </html>';
+    console.log(webForm);
+    return webForm;
+}
+
 export default class ReCaptcha extends Component {
 
     static propTypes = {
@@ -31,6 +56,8 @@ export default class ReCaptcha extends Component {
         action: PropTypes.string,
         onReady: PropTypes.func,
         onExecute: PropTypes.func,
+        customWebRecaptcha: PropTypes.func,
+        reCaptchaType: PropTypes.oneOf(type).isRequired
     };
 
     static defaultProps = {
@@ -44,15 +71,23 @@ export default class ReCaptcha extends Component {
             zIndex: 20,
             position: 'relative',
             marginBottom: 50
-        }
+        },
+        reCaptchaType: type.google
     };
 
     onShouldStartLoadWithRequest = (event) => {
-        const {url} = this.props;
-        if (event.url === url || event.url.indexOf(RECAPTCHA_SUB_STR) !== -1) {
+        console.log(event.url);
+        const {url, config} = this.props;
+        if (event.url === url || event.url.indexOf(RECAPTCHA_SUB_STR) !== -1 || (!!config && event.url.indexOf(config.authDomain) !== -1) || event.url.indexOf(RECAPTCHA_SUB_STR_FRAME) !== -1) {
             return true;
         }
-        Linking.openURL(event.url);
+        Linking.canOpenURL(event.url).then(supported => {
+            if (!supported) {
+              console.log('Can\'t handle url: ' + url);
+            } else {
+              return Linking.openURL(event.url);
+            }
+          });
         return false;
     }
 
@@ -77,7 +112,9 @@ export default class ReCaptcha extends Component {
             siteKey,
             action,
             onReady,
-            onExecute
+            onExecute,
+            config,
+            reCaptchaType
         } = this.props;
         
         return (
@@ -87,12 +124,13 @@ export default class ReCaptcha extends Component {
                 style={containerStyle}
                 onMessage={(message) => onExecute(message)}
                 source={{
-                    html: getWebViewContent(siteKey, action, onReady),
+                    html: reCaptchaType == type.google ? getGoogleWebViewContent(siteKey, action, onReady) :
+                                getFirebaseWebViewContent(config, onReady),
                     baseUrl: url
                 }}
                 onShouldStartLoadWithRequest={this.onShouldStartLoadWithRequest}
                 onNavigationStateChange = {this.onNavigationStateChange}
-                />  
+                /> 
         );
     }
 }
