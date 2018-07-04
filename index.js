@@ -78,7 +78,7 @@ export default class ReCaptcha extends Component {
     onShouldStartLoadWithRequest = (event) => {
         console.log(event.url);
         const {url, config} = this.props;
-        if (event.url === url || event.url.indexOf(RECAPTCHA_SUB_STR) !== -1 || event.url.indexOf(config.authDomain) !== -1 || event.url.indexOf(RECAPTCHA_SUB_STR_FRAME) !== -1) {
+        if (event.url === url || event.url.indexOf(RECAPTCHA_SUB_STR) !== -1 || (!!config && event.url.indexOf(config.authDomain) !== -1) || event.url.indexOf(RECAPTCHA_SUB_STR_FRAME) !== -1) {
             return true;
         }
         Linking.canOpenURL(event.url).then(supported => {
