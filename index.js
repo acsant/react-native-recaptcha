@@ -36,13 +36,12 @@ const getFirebaseWebViewContent = (config, onReady) => {
     '<script> '+
     'function onloadCallback() { '+
         'window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier("recaptcha-cont", '+ 
-            '{size: "normal", callback: function(response) { alert(response); }}); '+
+            '{size: "normal", callback: function(response) { window.postMessage(response); }}); '+
         'window.recaptchaVerifier.render(); '+
         '} '+
     '</script>'+
     '<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback"></script>'+
     '</body> </html>';
-    console.log(webForm);
     return webForm;
 }
 
@@ -70,13 +69,12 @@ export default class ReCaptcha extends Component {
             height: '100%',
             zIndex: 20,
             position: 'relative',
-            marginBottom: 50
+            marginTop: 20
         },
         reCaptchaType: type.google
     };
 
     onShouldStartLoadWithRequest = (event) => {
-        console.log(event.url);
         const {url, config} = this.props;
         if (event.url === url || event.url.indexOf(RECAPTCHA_SUB_STR) !== -1 || (!!config && event.url.indexOf(config.authDomain) !== -1) || event.url.indexOf(RECAPTCHA_SUB_STR_FRAME) !== -1) {
             return true;
