@@ -24,9 +24,9 @@ const getGoogleWebViewContent = (siteKey, action, onReady) => {
     return webForm;
 }
 
-const getFirebaseWebViewContent = (config, onReady) => {
+const getFirebaseWebViewContent = (config) => {
     const webForm = '<!DOCTYPE html><html><head> '+
-    '<style>  .text-xs-center { text-align: center; } .g-recaptcha { display: inline-block; float: right; margin-top: 40%; margin-right: 40px;} </style> '+
+    '<style>  .text-xs-center { text-align: center; } .g-recaptcha { display: inline-block; margin-right: 40px; float: right;} </style> '+
     '<script src="https://www.gstatic.com/firebasejs/5.1.0/firebase-app.js"></script> '+
     '<script src="https://www.gstatic.com/firebasejs/5.1.0/firebase-auth.js"></script> '+
     '<script type="text/javascript"> firebase.initializeApp(' + JSON.stringify(config) + '); '+
@@ -40,7 +40,7 @@ const getFirebaseWebViewContent = (config, onReady) => {
         'window.recaptchaVerifier.render(); '+
         '} '+
     '</script>'+
-    '<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback"></script>'+
+    '<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit"></script>'+
     '</body> </html>';
     return webForm;
 }
@@ -56,7 +56,7 @@ export default class ReCaptcha extends Component {
         onReady: PropTypes.func,
         onExecute: PropTypes.func,
         customWebRecaptcha: PropTypes.func,
-        reCaptchaType: PropTypes.oneOf(type).isRequired
+        reCaptchaType: PropTypes.oneOf(type).isRequired,
     };
 
     static defaultProps = {
@@ -69,7 +69,7 @@ export default class ReCaptcha extends Component {
             height: '100%',
             zIndex: 20,
             position: 'relative',
-            marginTop: 20
+            marginBottom: 20
         },
         reCaptchaType: type.google
     };
@@ -93,7 +93,13 @@ export default class ReCaptcha extends Component {
         if (Platform.OS === 'android') {
             const {url} = this.props;
             if (url !== event.url && event.url.indexOf(RECAPTCHA_SUB_STR) === -1 && !!event.canGoBack && !event.loading) {
-                Linking.openURL(event.url);
+                Linking.canOpenURL(event.url).then(supported => {
+                  if(!supported) {
+                    console.log('Can\'t handle url: ' + url);
+                  } else {
+                    return Linking.openUrl(event.url);
+                  }
+                });
             }
 
             if (!!event.canGoBack) {
@@ -112,18 +118,19 @@ export default class ReCaptcha extends Component {
             onReady,
             onExecute,
             config,
-            reCaptchaType
+            reCaptchaType,
         } = this.props;
         
         return (
             <MessageWebView
                 ref={(ref) => { this.webview = ref ;}}
+                scalesPageToFit={true}
                 mixedContentMode={'always'}
                 style={containerStyle}
                 onMessage={(message) => onExecute(message)}
                 source={{
                     html: reCaptchaType == type.google ? getGoogleWebViewContent(siteKey, action, onReady) :
-                                getFirebaseWebViewContent(config, onReady),
+                                getFirebaseWebViewContent(config),
                     baseUrl: url
                 }}
                 onShouldStartLoadWithRequest={this.onShouldStartLoadWithRequest}

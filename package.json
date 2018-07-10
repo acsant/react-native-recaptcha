@@ -1,6 +1,6 @@
 {
   "name": "react-native-recaptcha-v3",
-  "version": "0.0.10",
+  "version": "0.0.12",
   "description": "A react native wrapper for Google ReCaptcha V3",
   "main": "index.js",
   "scripts": {
