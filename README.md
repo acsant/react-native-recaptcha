@@ -35,4 +35,4 @@ Feel like contribution to this repository? The steps are simple:
 * Make the changes you'd like to see
 * Create a PR and wait for it to be approved by two people before merging
 
-Thank-you for using `react-native-recaptcha-v3` 😀 Feel free to also leave any feedbacks you may have.
+#### Thank-you for using `react-native-recaptcha-v3` 😀 Feel free to also leave any feedback or change requests you may have.
