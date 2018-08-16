@@ -13,15 +13,17 @@ npm install --save react-native-recaptcha-v3
 
 ### Props
 
-* `containerStyle` An object that specifies the display style for the recaptcha badge.
+* `containerStyle` An object that specifies the display style for the reCaptcha badge.
 
-* `siteKey` A string representing the siteKey provided in the google recaptcha admin console.
+* `siteKey` A string representing the siteKey provided in the Google reCaptcha admin console.
 
-* `url` Initial url for ReCaptcha
+* `url` URL associated with the app (This is the domain url that you registered on Google Admin Console when getting a siteKey)
 
 * `action` A string representing the ReCaptcha action (Refer to the ReCaptcha v3 document)
 
-* `onReady` A function that is executed when the ReCaptcha badge is loaded.
+* `reCaptchaType`: Currently two types of reCaptchas are supported:
+  * `invisible`: Invisible reCaptcha do not require the users to solve a challenge. Refer to the reCaptcha V3 documentation for further information
+  * `normal`: Normal reCaptcha may often require the user to click on a "I am not a robot" checkbox and solve a challenge (reCaptcha V2)
 
 * `onExecute` A function to handle the response of ReCaptcha. Takes in a parameter that represents the
 response token from the ReCaptcha.
