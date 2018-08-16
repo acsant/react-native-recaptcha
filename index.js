@@ -6,9 +6,9 @@ import {Platform, Linking} from 'react-native';
 const RECAPTCHA_SUB_STR="https://www.google.com/recaptcha/api2/anchor?";
 const RECAPTCHA_SUB_STR_FRAME="https://www.google.com/recaptcha/api2/bframe";
 
-export const type = Object.freeze({"google": 1, "firebase": 2});
+export const type = Object.freeze({"invisible": 1, "normal": 2});
 
-const getGoogleWebViewContent = (siteKey, action, onReady) => {
+const getInvisibleRecaptchaContent = (siteKey, action, onReady) => {
     const webForm = '<!DOCTYPE html><html><head> ' +
     '<style>  .text-xs-center { text-align: center; } .g-recaptcha { display: inline-block; } </style> ' +
     '<script src="https://www.google.com/recaptcha/api.js?render=' + siteKey + '"></script> ' +
@@ -24,7 +24,7 @@ const getGoogleWebViewContent = (siteKey, action, onReady) => {
     return webForm;
 }
 
-const getFirebaseWebViewContent = (config) => {
+const getNormalRecaptchaContent = (config) => {
     const webForm = '<!DOCTYPE html><html><head> '+
     '<style>  .text-xs-center { text-align: center; } .g-recaptcha { display: inline-block; margin-right: 40px; float: right;} </style> '+
     '<script src="https://www.gstatic.com/firebasejs/5.1.0/firebase-app.js"></script> '+
@@ -51,19 +51,18 @@ export default class ReCaptcha extends Component {
         onMessage: PropTypes.func,
         containerStyle: PropTypes.any,
         siteKey: PropTypes.string.isRequired,
-        url: PropTypes.string,
+        url: PropTypes.string.isRequired,
         action: PropTypes.string,
         onReady: PropTypes.func,
         onExecute: PropTypes.func,
         customWebRecaptcha: PropTypes.func,
-        reCaptchaType: PropTypes.oneOf(type).isRequired,
+        reCaptchaType: PropTypes.oneOf(Object.values(type)).isRequired,
     };
 
     static defaultProps = {
         onReady: () => {},
         onExecute: () => {},
         action: '',
-        url: '',
         containerStyle: {
             width: '100%',
             height: '100%',
@@ -71,11 +70,11 @@ export default class ReCaptcha extends Component {
             position: 'relative',
             marginBottom: 20
         },
-        reCaptchaType: type.google
+        reCaptchaType: type.invisible
     };
 
     onShouldStartLoadWithRequest = (event) => {
-        const {url, config} = this.props;
+        const {config, url} = this.props;
         if (event.url === url || event.url.indexOf(RECAPTCHA_SUB_STR) !== -1 || (!!config && event.url.indexOf(config.authDomain) !== -1) || event.url.indexOf(RECAPTCHA_SUB_STR_FRAME) !== -1) {
             return true;
         }
@@ -111,7 +110,6 @@ export default class ReCaptcha extends Component {
 
     render() {
         const {
-            url,
             containerStyle,
             siteKey,
             action,
@@ -119,6 +117,7 @@ export default class ReCaptcha extends Component {
             onExecute,
             config,
             reCaptchaType,
+            url
         } = this.props;
         
         return (
@@ -129,8 +128,8 @@ export default class ReCaptcha extends Component {
                 style={containerStyle}
                 onMessage={(message) => onExecute(message)}
                 source={{
-                    html: reCaptchaType == type.google ? getGoogleWebViewContent(siteKey, action, onReady) :
-                                getFirebaseWebViewContent(config),
+                    html: reCaptchaType == type.invisible ? getInvisibleRecaptchaContent(siteKey, action, onReady) :
+                                getNormalRecaptchaContent(config),
                     baseUrl: url
                 }}
                 onShouldStartLoadWithRequest={this.onShouldStartLoadWithRequest}
