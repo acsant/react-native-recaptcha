@@ -27,3 +27,12 @@ npm install --save react-native-recaptcha-v3
 
 * `onExecute` A function to handle the response of ReCaptcha. Takes in a parameter that represents the
 response token from the ReCaptcha.
+
+### Contribution
+
+Feel like contribution to this repository? The steps are simple:
+* Fork the repository
+* Make the changes you'd like to see
+* Create a PR and wait for it to be approved by two people before merging
+
+Thank-you for using `react-native-recaptcha-v3` 😀 Feel free to also leave any feedbacks you may have.
