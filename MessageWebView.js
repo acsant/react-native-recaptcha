@@ -1,5 +1,5 @@
 import React from 'react'
-import { WebView } from 'react-native'
+import { WebView, View } from 'react-native'
 
 // fix https://github.com/facebook/react-native/issues/10865
 const patchPostMessageJsCode = `(${String(function() {
@@ -25,20 +25,24 @@ export default class MessageWebView extends React.Component {
     getWebViewHandle = () => {
         return this.webview;
     }
-    
+
     render() {
         const { html, source, url, onMessage, ...props } = this.props
 
         return (
+            <View style={props.containerStyle}>
             <WebView
                 {...props}
+                style={props.containerStyle}
                 javaScriptEnabled
                 automaticallyAdjustContentInsets
                 injectedJavaScript={patchPostMessageJsCode}
-                source={source ? source : html ? { html } : url }
+                source={source ? source : html ? { html } : url}
                 ref={x => {this.webview = x}}
                 onMessage={e => onMessage(e.nativeEvent.data)}
+
             />
+            </View>
         )
     }
 }

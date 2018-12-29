@@ -15,7 +15,7 @@ const getInvisibleRecaptchaContent = (siteKey, action, onReady) => {
     '<script type="text/javascript"> ' +
     'grecaptcha.ready(function() { ' +
         `(${String(onReady)})(); ` +
-        'grecaptcha.execute(\'' + siteKey + '\', {action: \'' + action + '\'}).then( '+ 
+        'grecaptcha.execute(\'' + siteKey + '\', {action: \'' + action + '\'}).then( '+
             'function (responseToken) { window.postMessage(responseToken);  } ' +
         ' ); ' +
     '}); ' +
@@ -35,7 +35,7 @@ const getNormalRecaptchaContent = (config) => {
     '<body><div id="recaptcha-cont" class="g-recaptcha"></div>'+
     '<script> '+
     'function onloadCallback() { '+
-        'window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier("recaptcha-cont", '+ 
+        'window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier("recaptcha-cont", '+
             '{size: "normal", callback: function(response) { window.postMessage(response); }}); '+
         'window.recaptchaVerifier.render(); '+
         '} '+
@@ -66,7 +66,7 @@ export default class ReCaptcha extends Component {
         containerStyle: {
             width: '100%',
             height: '100%',
-            zIndex: 20,
+            zIndex: -1,
             position: 'relative',
             marginBottom: 20
         },
@@ -119,13 +119,13 @@ export default class ReCaptcha extends Component {
             reCaptchaType,
             url
         } = this.props;
-        
+
         return (
             <MessageWebView
                 ref={(ref) => { this.webview = ref ;}}
                 scalesPageToFit={true}
                 mixedContentMode={'always'}
-                style={containerStyle}
+                containerStyle={containerStyle}
                 onMessage={(message) => onExecute(message)}
                 source={{
                     html: reCaptchaType == type.invisible ? getInvisibleRecaptchaContent(siteKey, action, onReady) :
@@ -134,7 +134,7 @@ export default class ReCaptcha extends Component {
                 }}
                 onShouldStartLoadWithRequest={this.onShouldStartLoadWithRequest}
                 onNavigationStateChange = {this.onNavigationStateChange}
-                /> 
+                />
         );
     }
 }
