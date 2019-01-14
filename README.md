@@ -24,7 +24,7 @@ npm install --save react-native-recaptcha-v3
 * `reCaptchaType`: Currently two types of reCaptchas are supported:
   * `invisible`: Invisible reCaptcha do not require the users to solve a challenge. Refer to the reCaptcha V3 documentation for further information
   * `normal`: Normal reCaptcha may often require the user to click on a "I am not a robot" checkbox and solve a challenge (reCaptcha V2) - NOTE: This is meant to be used only with the firebase projects since firebase doesn't yet support reCaptcha v3.
-  
+
 * `config`: Firebase project config found in the firebase console. This prop is only required when using the normal reCaptcha
 
 * `onExecute` A function to handle the response of ReCaptcha. Takes in a parameter that represents the
@@ -36,5 +36,9 @@ Feel like contribution to this repository? The steps are simple:
 * Fork the repository
 * Make the changes you'd like to see
 * Create a PR and wait for it to be approved by two people before merging
+
+### Applications using `react-native-recaptcha-v3`
+
+[Pool App](https://www.poolapp.io) : https://www.poolapp.io
 
 #### Thank-you for using `react-native-recaptcha-v3` 😀 Feel free to also leave any feedback or change requests you may have.

@@ -23,7 +23,8 @@
   "author": "Akash Sant",
   "license": "ISC",
   "dependencies": {
-    "prop-types": "^15.6.1"
+    "prop-types": "^15.6.1",
+    "merge": ">=1.2.1"
   },
   "peerDependencies": {
     "react-native": "*"
