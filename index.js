@@ -1,49 +1,14 @@
-import React, {Component} from 'react';
-import MessageWebView from './MessageWebView';
-import PropTypes from 'prop-types';
-import {Platform, Linking} from 'react-native';
+import React, { Component } from "react";
+import MessageWebView from "./MessageWebView";
+import PropTypes from "prop-types";
+import { Platform, Linking } from "react-native";
 
-const RECAPTCHA_SUB_STR="https://www.google.com/recaptcha/api2/anchor?";
-const RECAPTCHA_SUB_STR_FRAME="https://www.google.com/recaptcha/api2/bframe";
+import { invisibleRecaptcha, normalRecaptcha } from "./get-captcha";
 
-export const type = Object.freeze({"invisible": 1, "normal": 2});
+const RECAPTCHA_SUB_STR = "https://www.google.com/recaptcha/api2/anchor?";
+const RECAPTCHA_SUB_STR_FRAME = "https://www.google.com/recaptcha/api2/bframe";
 
-const getInvisibleRecaptchaContent = (siteKey, action, onReady) => {
-    const webForm = '<!DOCTYPE html><html><head> ' +
-    '<style>  .text-xs-center { text-align: center; } .g-recaptcha { display: inline-block; } </style> ' +
-    '<script src="https://www.google.com/recaptcha/api.js?render=' + siteKey + '"></script> ' +
-    '<script type="text/javascript"> ' +
-    'grecaptcha.ready(function() { ' +
-        `(${String(onReady)})(); ` +
-        'grecaptcha.execute(\'' + siteKey + '\', {action: \'' + action + '\'}).then( '+
-            'function (responseToken) { window.postMessage(responseToken);  } ' +
-        ' ); ' +
-    '}); ' +
-    '</script>' +
-    '</head></html>';
-    return webForm;
-}
-
-const getNormalRecaptchaContent = (config) => {
-    const webForm = '<!DOCTYPE html><html><head> '+
-    '<style>  .text-xs-center { text-align: center; } .g-recaptcha { display: inline-block; margin-right: 40px; float: right;} </style> '+
-    '<script src="https://www.gstatic.com/firebasejs/5.1.0/firebase-app.js"></script> '+
-    '<script src="https://www.gstatic.com/firebasejs/5.1.0/firebase-auth.js"></script> '+
-    '<script type="text/javascript"> firebase.initializeApp(' + JSON.stringify(config) + '); '+
-    '</script><script src="https://www.google.com/recaptcha/api.js"></script> '+
-    '</head> '+
-    '<body><div id="recaptcha-cont" class="g-recaptcha"></div>'+
-    '<script> '+
-    'function onloadCallback() { '+
-        'window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier("recaptcha-cont", '+
-            '{size: "normal", callback: function(response) { window.postMessage(response); }}); '+
-        'window.recaptchaVerifier.render(); '+
-        '} '+
-    '</script>'+
-    '<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit"></script>'+
-    '</body> </html>';
-    return webForm;
-}
+export const type = Object.freeze({ "invisible": 1, "normal": 2 });
 
 export default class ReCaptcha extends Component {
 
@@ -56,85 +21,85 @@ export default class ReCaptcha extends Component {
         onReady: PropTypes.func,
         onExecute: PropTypes.func,
         customWebRecaptcha: PropTypes.func,
-        reCaptchaType: PropTypes.oneOf(Object.values(type)).isRequired,
+        reCaptchaType: PropTypes.oneOf(Object.values(type)).isRequired
     };
 
     static defaultProps = {
-        onReady: () => {},
-        onExecute: () => {},
-        action: '',
+        onReady: () => {
+        },
+        onExecute: () => {
+        },
+        action: "",
         containerStyle: {
-            width: '100%',
-            height: '100%',
+            width: "100%",
+            height: "100%",
             zIndex: -1,
-            position: 'relative',
+            position: "relative",
             marginBottom: 20
         },
         reCaptchaType: type.invisible
     };
 
-    onShouldStartLoadWithRequest = (event) => {
-        const {config, url} = this.props;
-        if (event.url === url || event.url.indexOf(RECAPTCHA_SUB_STR) !== -1 || (!!config && event.url.indexOf(config.authDomain) !== -1) || event.url.indexOf(RECAPTCHA_SUB_STR_FRAME) !== -1) {
-            return true;
+    getSource = () => {
+        const { action, config, onReady, recaptchaType, siteKey, url: baseUrl } = this.props;
+        let html = normalRecaptcha(config);
+        if (recaptchaType === type.invisible) {
+            html = invisibleRecaptcha(siteKey, action, onReady);
         }
-        Linking.canOpenURL(event.url).then(supported => {
-            if (!supported) {
-              console.log('Can\'t handle url: ' + url);
-            } else {
-              return Linking.openURL(event.url);
-            }
-          });
-        return false;
-    }
+        return { html, baseUrl };
+    };
 
-    onNavigationStateChange = (event) => {
-        if (Platform.OS === 'android') {
-            const {url} = this.props;
-            if (url !== event.url && event.url.indexOf(RECAPTCHA_SUB_STR) === -1 && !!event.canGoBack && !event.loading) {
-                Linking.canOpenURL(event.url).then(supported => {
-                  if(!supported) {
-                    console.log('Can\'t handle url: ' + url);
-                  } else {
-                    return Linking.openUrl(event.url);
-                  }
+    onMessage = (message) => {
+        this.props.onExecute(message);
+    };
+
+    onNavigationStateChange = ({ canGoBack, loading, url: eventUrl }) => {
+        if (Platform.OS === "android") {
+            const { url } = this.props;
+            if (url !== eventUrl && eventUrl.indexOf(RECAPTCHA_SUB_STR) === -1 && !!canGoBack && !loading) {
+                Linking.canOpenURL(eventUrl).then(supported => {
+                    if (!supported) {
+                        console.log(`Can't handle url: ${url}`);
+                    } else {
+                        return Linking.openUrl(eventUrl);
+                    }
                 });
             }
-
-            if (!!event.canGoBack) {
+            if (!!canGoBack) {
                 this.webview.getWebViewHandle().goBack();
             }
         }
+    };
 
-    }
+    onShouldStartLoadWithRequest = ({ url: eventUrl }) => {
+        const { config, url } = this.props;
+        const hasCaptchaAnchor = eventUrl.indexOf(RECAPTCHA_SUB_STR) !== -1;
+        const hasCaptchaFrame = eventUrl.indexOf(RECAPTCHA_SUB_STR_FRAME) !== -1;
+        const hasFirebaseAuthDomain = (!!config && eventUrl.indexOf(config.authDomain) !== -1);
+        if (eventUrl === url || hasCaptchaAnchor || hasFirebaseAuthDomain || hasCaptchaFrame) {
+            return true;
+        } else {
+            Linking.canOpenURL(eventUrl).then(supported => {
+                if (!supported) {
+                    console.log(`Can't handle url: ${url}`);
+                } else {
+                    return Linking.openURL(eventUrl);
+                }
+            });
+            return false;
+        }
+    };
 
     render() {
-        const {
-            containerStyle,
-            siteKey,
-            action,
-            onReady,
-            onExecute,
-            config,
-            reCaptchaType,
-            url
-        } = this.props;
-
-        return (
-            <MessageWebView
-                ref={(ref) => { this.webview = ref ;}}
-                scalesPageToFit={true}
-                mixedContentMode={'always'}
-                containerStyle={containerStyle}
-                onMessage={(message) => onExecute(message)}
-                source={{
-                    html: reCaptchaType == type.invisible ? getInvisibleRecaptchaContent(siteKey, action, onReady) :
-                                getNormalRecaptchaContent(config),
-                    baseUrl: url
-                }}
-                onShouldStartLoadWithRequest={this.onShouldStartLoadWithRequest}
-                onNavigationStateChange = {this.onNavigationStateChange}
-                />
-        );
+        return <MessageWebView
+            ref={(ref) => this.webview = ref}
+            scalesPageToFit={true}
+            mixedContentMode={"always"}
+            containerStyle={this.props.containerStyle}
+            onMessage={this.onMessage}
+            source={this.getSource()}
+            onShouldStartLoadWithRequest={this.onShouldStartLoadWithRequest}
+            onNavigationStateChange={this.onNavigationStateChange}
+        />;
     }
 }
